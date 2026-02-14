@@ -1,223 +1,236 @@
-# 📈 AI Trading Pro — Reinforcement Learning Based Trading Platform
+# AI Trading Pro — Reinforcement Learning Trading Research Platform
 
-A full-stack AI trading platform that simulates a real brokerage system and trains a Reinforcement Learning agent to learn optimal trading strategies from historical market data.
+AI Trading Pro is a full-stack algorithmic trading research platform designed to simulate, train, evaluate, and deploy reinforcement-learning based trading strategies in a controlled environment.
 
-The system combines:
-
-• Realistic trading engine  
-• Portfolio management backend  
-• Live market data integration  
-• Q-Learning training pipeline  
-• Analytics dashboard  
-• Model persistence & inference  
+Unlike typical trading bots, this system focuses on **research-grade experimentation** — enabling safe testing of AI trading behavior before real capital is ever involved.
 
 ---
 
-## 🧠 Key Idea
+## 🚀 What This Project Actually Solves
 
-Instead of manually designing trading strategies, this project allows an AI agent to **learn how to trade** by interacting with a market environment.
+Most ML trading projects only train a model.
 
-The agent learns:
+They do NOT provide:
 
-> When to BUY  
-> When to HOLD  
-> When to SELL  
+* data ingestion pipeline
+* training orchestration
+* persistent state
+* evaluation metrics
+* live simulation environment
+* strategy lifecycle
 
-based purely on reward optimization.
+This platform provides the complete workflow:
+
+**Data → Training → Evaluation → Simulation → Analytics → Inference**
+
+The goal is to behave like a mini quant research platform, not a script.
 
 ---
 
-## 🏗️ System Architecture
+## 🏗 System Architecture
 
 ```
-Browser UI
-    ↓
-Flask Backend API
-    ↓
-PostgreSQL Database
-    ↓
-RL Training Engine (Q-Learning)
-    ↓
-Saved Model (Q-Table)
+backend/
+│
+├── routes/        → API layer (request validation only)
+├── services/      → business logic & trading engine
+├── agents/        → reinforcement learning models
+├── tasks/         → background training workers
+├── models/        → database schema
+├── metrics/       → performance measurement
+├── audit/         → trading audit logs
+├── guards/        → safety constraints
+└── config/        → runtime configuration
 ```
 
----
+### Architectural Principles
 
-## ⚙️ Core Features
-
-### Trading Platform
-- User portfolio management
-- Buy / Sell order execution
-- Watchlist tracking
-- Cash balance updates
-- Trade history storage
-
-### Live Market Integration
-- Real-time stock prices via Finnhub API
-- Automatic background price updates (scheduler)
-- Dynamic portfolio valuation
-
-### Reinforcement Learning Engine
-- Custom trading environment
-- Q-Learning agent
-- CSV historical data training
-- Reward-based learning
-- Model persistence (.pkl)
-- State-action storage in DB
-
-### Analytics & Visualization
-- Portfolio performance metrics
-- Training reward graphs
-- Portfolio value history
-- RL training progress tracking
-
-### Model Inference
-- Load trained Q-table
-- Predict optimal action for market state
-- Strategy simulation
+* App Factory Pattern
+* Service Layer Separation
+* Background Worker Training
+* Stateful RL Agent Persistence
+* Scheduler-driven market updates
+* Non-blocking API execution
 
 ---
 
-## 🤖 Reinforcement Learning Details
+## ⚙️ Core Capabilities
 
-| Component | Implementation |
-|--------|------|
-Environment | Custom TradingEnv |
-Agent | Tabular Q-Learning |
-Actions | Buy / Hold / Sell |
-Reward | Portfolio Profit |
-State | Market features derived from price history |
-Persistence | Database + Pickle |
+### Trading Simulation
 
----
+* Portfolio holdings tracking
+* Trade execution engine
+* Market price updates (scheduled)
+* Order lifecycle tracking
+* Performance analytics
 
-## 📂 Project Structure
+### Reinforcement Learning
 
-```
-trading/
-│
-├── trading_backend.py        # Main Flask server
-├── utils/
-│   ├── environment.py        # Trading environment
-│   └── agent.py              # Q-learning agent
-│
-├── templates/                # Frontend UI
-│   ├── index.html
-│   ├── trading.html
-│   ├── portfolio.html
-│   ├── analytics.html
-│   ├── news.html
-│   └── rl_training.html
-│
-├── uploads/                  # Uploaded datasets (ignored)
-├── models/                   # Trained models (ignored)
-├── results/                  # Training outputs (ignored)
-│
-└── README.md
-```
+* Q-Learning agent
+* Persistent Q-table storage
+* Training job system
+* CSV historical dataset training
+* Prediction inference API
+
+### Analytics
+
+* Portfolio performance metrics
+* Reward history
+* Training progression
+* Strategy evaluation
+
+### System Features
+
+* PostgreSQL persistence
+* Background job worker
+* Structured logging
+* Modular backend architecture
+* Safe simulation environment (paper trading)
 
 ---
 
-## 🚀 Running Locally
+## 📦 Installation
 
-### 1️⃣ Clone Repository
 ```bash
-git clone https://github.com/YOUR_USERNAME/ai-trading-pro.git
+git clone https://github.com/itsAashutosh/ai-trading-pro.git
 cd ai-trading-pro
-```
 
-### 2️⃣ Create Virtual Environment
-```bash
 python3 -m venv .venv
-source .venv/bin/activate   # Mac/Linux
-```
-
-### 3️⃣ Install Dependencies
-```bash
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 4️⃣ Setup Database
-Make sure PostgreSQL is running and update DB URL inside:
+---
+
+## 🔐 Environment Setup
+
+Create `.env`:
 
 ```
-trading_backend.py
+DATABASE_URL=postgresql://username:password@localhost:5432/ai_trading_db
+SECRET_KEY=dev-secret
+FINNHUB_API_KEY=your_api_key
 ```
 
-### 5️⃣ Run Server
+---
+
+## ▶️ Run Server
+
 ```bash
-python trading_backend.py
+python run.py
 ```
 
-Open:
+Server runs at:
 
 ```
-http://127.0.0.1:8000
-```
-
----
-
-## 🧪 Training the AI Agent
-
-1. Open **RL Training page**
-2. Upload historical CSV data
-3. Configure parameters
-4. Start training
-
-The agent will learn trading policy and store:
-
-```
-models/q_table_job_<id>.pkl
-results/results_<id>.json
+http://127.0.0.1:5001
 ```
 
 ---
 
-## 📊 Example Learning Outcome
+## 🧪 Training Workflow
 
-The agent gradually learns:
+### 1) Upload Dataset
 
-Early episodes → random trading  
-Later episodes → profit-maximizing strategy
-
-This demonstrates policy improvement via reward feedback.
-
----
-
-## 🔐 Important Notes
-
-Ignored from GitHub:
 ```
-models/
-uploads/
-results/
-.venv/
+POST /api/rl-training/upload
 ```
 
-These are runtime artifacts and generated automatically.
+CSV must contain:
+
+```
+Date, Open, High, Low, Close, Volume
+```
+
+### 2) Start Training
+
+```
+POST /api/rl-training/start
+```
+
+Parameters:
+
+* episodes
+* learning_rate
+* discount_factor
+* epsilon
+* epsilon_decay
+* initial_balance
+
+Training runs asynchronously in background worker.
+
+### 3) Monitor Training
+
+```
+GET /api/rl-training/jobs/<user_id>
+```
+
+### 4) Get Results
+
+```
+GET /api/rl-training/job/<job_id>/results
+```
+
+Returns:
+
+* final balance
+* total reward
+* profit %
+* equity curve
+
+### 5) Predict Action
+
+```
+POST /api/rl-agent/<job_id>/predict
+```
+
+Returns:
+
+```
+BUY / HOLD / SELL + confidence
+```
 
 ---
 
-## 🎯 Learning Objectives
+## 📊 Example System Flow
 
-This project demonstrates:
-
-- Reinforcement Learning in finance
-- Full-stack system design
-- API architecture
-- Background job scheduling
-- Model lifecycle management
-- Data-driven decision systems
+1. Upload historical market data
+2. Train RL agent
+3. Evaluate performance
+4. Simulate trading decisions
+5. Analyze portfolio metrics
+6. Iterate strategy
 
 ---
 
-## ⚠️ Disclaimer
-Educational trading simulator only.  
-Not financial advice or real trading software.
+## ⚠️ Important Disclaimer
+
+This project is a research simulation platform.
+
+It does NOT:
+
+* connect to real brokers
+* execute live trades
+* provide financial advice
+
+Designed strictly for experimentation and learning.
+
+---
+
+## 🧭 Roadmap
+
+Planned evolution:
+
+* Risk engine (position sizing & max drawdown)
+* Matching engine with partial fills
+* Backtesting framework
+* Strategy management lifecycle
+* Multi-agent competitions
+* Paper trading websocket simulation
 
 ---
 
 ## 👨‍💻 Author
-**Aashutosh Pandey**
 
-AI/ML Engineer • Backend Developer • Systems Builder
+**Aashutosh Pandey**
+Backend Systems • Reinforcement Learning • Algorithmic Trading
