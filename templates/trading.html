@@ -1,0 +1,1335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trading Pro - Advanced Trading</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Navigation */
+        .navbar {
+            background: rgba(0, 0, 0, 0.9);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1rem 2rem;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            background: linear-gradient(45deg, #00f5ff, #ff00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: #ffffff;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-links a:hover, .nav-links a.active {
+            background: rgba(0, 245, 255, 0.1);
+            color: #00f5ff;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .market-status {
+            padding: 0.3rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .market-closed {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+        }
+
+        .market-open {
+            background: linear-gradient(45deg, #2ed573, #1dd1a1);
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00f5ff, #0066ff);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, #2ed573, #1dd1a1);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top: 2px solid #00f5ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-top: 80px;
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #00f5ff, #ff00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-subtitle {
+            color: #888;
+            font-size: 1.1rem;
+        }
+
+        /* Trading Layout */
+        .trading-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .trading-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            height: fit-content;
+        }
+
+        .chart-container {
+            height: 400px;
+            margin-top: 1rem;
+        }
+
+        /* Stock Info */
+        .stock-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .info-label {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        .positive { color: #2ed573; }
+        .negative { color: #ff4757; }
+
+        /* Trading Form */
+        .trading-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            color: #888;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .form-control {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.75rem;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #00f5ff;
+            box-shadow: 0 0 0 2px rgba(0, 245, 255, 0.2);
+        }
+
+        .form-control option {
+            background: #1a1a2e;
+            color: #ffffff;
+        }
+
+        /* Order Types */
+        .order-types {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .order-type-btn {
+            flex: 1;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .order-type-btn.active {
+            background: linear-gradient(45deg, #00f5ff, #0066ff);
+            border-color: #00f5ff;
+        }
+
+        .order-type-btn:hover {
+            background: rgba(0, 245, 255, 0.1);
+        }
+
+        /* Price Display */
+        .price-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .current-price {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #00f5ff, #ff00ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+        }
+
+        .price-change {
+            text-align: center;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+
+        /* Order Book */
+        .order-book {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .order-book-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .order-book-table th,
+        .order-book-table td {
+            padding: 0.5rem;
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+
+        .order-book-table th {
+            color: #888;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .bid-row {
+            background: rgba(46, 213, 115, 0.1);
+        }
+
+        .ask-row {
+            background: rgba(255, 71, 87, 0.1);
+        }
+
+        /* Recent Trades */
+        .recent-trades {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .trade-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* Watchlist */
+        .trading-watchlist {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .watchlist-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .watchlist-item:hover {
+            background: rgba(0, 245, 255, 0.1);
+        }
+
+        /* Position Calculator */
+        .position-calculator {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .calculator-result {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            margin: 5% auto;
+            padding: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 600px;
+            color: white;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #00f5ff;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .trading-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                padding: 1rem;
+            }
+            
+            .stock-info {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="logo">AI TRADING PRO</div>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Dashboard</a></li>
+            <li><a href="portfolio.html">Portfolio</a></li>
+            <li><a href="trading.html">Trading</a></li>
+            <li><a href="analytics.html">Analytics</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="rl_training.html">Train</a></li>
+            <li><a href="settings.html">Settings</a></li>
+            
+        </ul>
+        <div class="user-info">
+            <span class="market-status market-closed" id="market-status">Market CLOSED</span>
+            <span>Welcome, Demo User</span>
+            <button class="btn btn-primary" onclick="logout()">LOGOUT</button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Advanced Trading <span class="loading" id="mainLoader"></span></h1>
+            <p class="page-subtitle">Professional trading interface with real-time data and advanced order types</p>
+        </div>
+
+        <!-- Stock Information -->
+        <div class="stock-info">
+            <div class="info-card">
+                <div class="info-label">Symbol</div>
+                <div class="info-value" id="current-symbol">AAPL</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Current Price</div>
+                <div class="info-value positive" id="current-price">$0.00</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Change</div>
+                <div class="info-value" id="price-change">$0.00 (0.00%)</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Volume</div>
+                <div class="info-value" id="volume">0</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Day High</div>
+                <div class="info-value" id="day-high">$0.00</div>
+            </div>
+            <div class="info-card">
+                <div class="info-label">Day Low</div>
+                <div class="info-value" id="day-low">$0.00</div>
+            </div>
+        </div>
+
+        <!-- Main Trading Interface -->
+        <div class="trading-layout">
+            <!-- Chart Section -->
+            <div class="chart-section">
+                <h3 style="margin-bottom: 1rem; color: #00f5ff;">Live Price Chart</h3>
+                <div class="chart-container">
+                    <canvas id="tradingChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Trading Panel -->
+            <div class="trading-panel">
+                <h3 style="margin-bottom: 1rem; color: #00f5ff;">Place Order</h3>
+                
+                <!-- Current Price Display -->
+                <div class="price-display">
+                    <div class="current-price" id="display-price">$0.00</div>
+                    <div class="price-change" id="display-change">$0.00 (0.00%)</div>
+                </div>
+
+                <!-- Trading Form -->
+                <div class="trading-form">
+                    <!-- Order Type Selection -->
+                    <div class="form-group">
+                        <label>Order Type</label>
+                        <div class="order-types">
+                            <button type="button" class="order-type-btn active" onclick="selectOrderType('market')">Market</button>
+                            <button type="button" class="order-type-btn" onclick="selectOrderType('limit')">Limit</button>
+                            <button type="button" class="order-type-btn" onclick="selectOrderType('stop')">Stop</button>
+                        </div>
+                    </div>
+
+                    <!-- Symbol -->
+                    <div class="form-group">
+                        <label>Symbol</label>
+                        <input type="text" class="form-control" id="trade-symbol" value="AAPL" onchange="updateStockInfo()">
+                    </div>
+
+                    <!-- Quantity -->
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" class="form-control" id="trade-quantity" placeholder="100" min="1">
+                    </div>
+
+                    <!-- Price (for limit orders) -->
+                    <div class="form-group" id="price-group" style="display: none;">
+                        <label>Limit Price</label>
+                        <input type="number" class="form-control" id="limit-price" placeholder="0.00" step="0.01">
+                    </div>
+
+                    <!-- Stop Price (for stop orders) -->
+                    <div class="form-group" id="stop-group" style="display: none;">
+                        <label>Stop Price</label>
+                        <input type="number" class="form-control" id="stop-price" placeholder="0.00" step="0.01">
+                    </div>
+
+                    <!-- Time in Force -->
+                    <div class="form-group">
+                        <label>Time in Force</label>
+                        <select class="form-control" id="time-in-force">
+                            <option value="day">Day</option>
+                            <option value="gtc">Good Till Cancelled</option>
+                            <option value="ioc">Immediate or Cancel</option>
+                            <option value="fok">Fill or Kill</option>
+                        </select>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 1rem;">
+                        <button type="button" class="btn btn-success" onclick="executeTrade('buy')">BUY</button>
+                        <button type="button" class="btn btn-danger" onclick="executeTrade('sell')">SELL</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Book and Recent Trades -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <!-- Order Book -->
+            <div class="order-book">
+                <h3 style="margin-bottom: 1rem; color: #00f5ff;">Order Book</h3>
+                <table class="order-book-table">
+                    <thead>
+                        <tr>
+                            <th>Price</th>
+                            <th>Size</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="order-book-body">
+                        <tr><td colspan="3" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Recent Trades -->
+            <div class="recent-trades">
+                <h3 style="margin-bottom: 1rem; color: #00f5ff;">Recent Trades</h3>
+                <div id="recent-trades-list">
+                    <div style="text-align: center; padding: 2rem; color: #888;">Loading trades...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trading Watchlist -->
+        <div class="trading-watchlist">
+            <h3 style="margin-bottom: 1rem; color: #00f5ff;">Watchlist (Live Data)</h3>
+            <div id="watchlist-container">
+                <div style="text-align: center; padding: 2rem; color: #888;">Loading watchlist...</div>
+            </div>
+        </div>
+
+        <!-- Position Calculator -->
+        <div class="position-calculator">
+            <h3 style="margin-bottom: 1rem; color: #00f5ff;">Position Calculator</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                <div class="form-group">
+                    <label>Entry Price</label>
+                    <input type="number" class="form-control" id="calc-entry" placeholder="0.00" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Quantity</label>
+                    <input type="number" class="form-control" id="calc-quantity" placeholder="100">
+                </div>
+                <div class="form-group">
+                    <label>Stop Loss</label>
+                    <input type="number" class="form-control" id="calc-stop" placeholder="0.00" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Take Profit</label>
+                    <input type="number" class="form-control" id="calc-target" placeholder="0.00" step="0.01">
+                </div>
+            </div>
+            <button class="btn btn-primary" onclick="calculatePosition()" style="margin-top: 1rem;">Calculate</button>
+            <div class="calculator-result" id="calc-result"></div>
+        </div>
+    </main>
+
+    <!-- Order Confirmation Modal -->
+    <div id="orderModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Order Confirmation</h2>
+            <div id="orderDetails"></div>
+            <div style="margin-top: 2rem; display: flex; gap: 1rem;">
+                <button class="btn btn-success" onclick="confirmOrder()">Confirm Order</button>
+                <button class="btn btn-danger" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Keys
+        const FINNHUB_API_KEY = 'd3f9q79r01qolknc9vhgd3f9q79r01qolknc9vi0';
+        const NEWS_API_KEY = '1acb4f9a6da041d4acde2a75072f16d7';
+
+        // Global Variables
+        let currentOrderType = 'market';
+        let currentSymbol = 'AAPL';
+        let tradingChart = null;
+        let stockData = {};
+        let watchlistSymbols = ['AAPL', 'TSLA', 'GOOGL', 'MSFT', 'AMZN'];
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            
+            // Check if symbol passed from portfolio
+            const urlParams = new URLSearchParams(window.location.search);
+            const symbolParam = urlParams.get('symbol');
+            if (symbolParam) {
+                currentSymbol = symbolParam;
+                document.getElementById('trade-symbol').value = symbolParam;
+            }
+        });
+
+        async function initializePage() {
+            console.log('Initializing Trading Page...');
+            updateMarketStatus();
+            await fetchLiveStockData();
+            initializeTradingChart();
+            initializeOrderBook();
+            startRealTimeUpdates();
+        }
+
+        // Fetch live stock data from Finnhub with fallback
+        async function fetchLiveStockData() {
+            try {
+                // Initialize with demo data first
+                if (Object.keys(stockData).length === 0) {
+                    stockData = {
+                        'AAPL': { symbol: 'AAPL', price: 175.30, change: 2.45, percent: 1.42, high: 177.50, low: 173.20, open: 174.00, previousClose: 172.85 },
+                        'TSLA': { symbol: 'TSLA', price: 245.60, change: -3.20, percent: -1.28, high: 250.10, low: 244.30, open: 248.80, previousClose: 248.80 },
+                        'GOOGL': { symbol: 'GOOGL', price: 2950.20, change: 15.80, percent: 0.54, high: 2965.40, low: 2935.10, open: 2940.00, previousClose: 2934.40 },
+                        'MSFT': { symbol: 'MSFT', price: 310.45, change: 5.25, percent: 1.72, high: 312.80, low: 308.10, open: 309.20, previousClose: 305.20 },
+                        'AMZN': { symbol: 'AMZN', price: 3250.80, change: 12.40, percent: 0.38, high: 3268.50, low: 3240.20, open: 3245.00, previousClose: 3238.40 }
+                    };
+                    updateStockInfo();
+                    updateWatchlist();
+                }
+
+                // Try to fetch live data
+                const promises = watchlistSymbols.map(async symbol => {
+                    try {
+                        const response = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`);
+                        if (!response.ok) throw new Error('API Error');
+                        const data = await response.json();
+                        
+                        if (data.c && data.c > 0) {
+                            return {
+                                symbol: symbol,
+                                price: data.c,
+                                change: data.d || 0,
+                                percent: data.dp || 0,
+                                high: data.h || data.c,
+                                low: data.l || data.c,
+                                open: data.o || data.c,
+                                previousClose: data.pc || data.c
+                            };
+                        }
+                        return null;
+                    } catch (err) {
+                        console.warn(`Using demo data for ${symbol}`);
+                        return null;
+                    }
+                });
+
+                const results = await Promise.all(promises);
+                let liveDataCount = 0;
+                
+                results.forEach(data => {
+                    if (data && data.symbol) {
+                        stockData[data.symbol] = data;
+                        liveDataCount++;
+                    }
+                });
+
+                if (liveDataCount > 0) {
+                    console.log(`Loaded live data for ${liveDataCount} stocks`);
+                }
+
+                updateStockInfo();
+                updateWatchlist();
+                document.getElementById('mainLoader').style.display = 'none';
+            } catch (error) {
+                console.error('Error fetching stock data:', error);
+                document.getElementById('mainLoader').style.display = 'none';
+            }
+        }
+
+        function updateStockInfo() {
+            const symbol = document.getElementById('trade-symbol').value.toUpperCase();
+            currentSymbol = symbol;
+
+            if (!stockData[symbol]) {
+                fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_API_KEY}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.c && data.c > 0) {
+                            stockData[symbol] = {
+                                symbol: symbol,
+                                price: data.c,
+                                change: data.d || 0,
+                                percent: data.dp || 0,
+                                high: data.h || data.c,
+                                low: data.l || data.c,
+                                open: data.o || data.c,
+                                previousClose: data.pc || data.c
+                            };
+                        }
+                        displayStockInfo(symbol);
+                    })
+                    .catch(err => {
+                        console.warn('Using demo data');
+                        displayStockInfo(symbol);
+                    });
+            } else {
+                displayStockInfo(symbol);
+            }
+        }
+
+        function displayStockInfo(symbol) {
+            const data = stockData[symbol];
+            if (!data) return;
+
+            document.getElementById('current-symbol').textContent = symbol;
+            document.getElementById('current-price').textContent = `${data.price.toFixed(2)}`;
+            document.getElementById('display-price').textContent = `${data.price.toFixed(2)}`;
+            
+            const changeClass = data.change >= 0 ? 'positive' : 'negative';
+            const changeSymbol = data.change >= 0 ? '+' : '';
+            const changeText = `${changeSymbol}${Math.abs(data.change).toFixed(2)} (${changeSymbol}${data.percent.toFixed(2)}%)`;
+            
+            document.getElementById('price-change').textContent = changeText;
+            document.getElementById('price-change').className = `info-value ${changeClass}`;
+            document.getElementById('display-change').textContent = changeText;
+            document.getElementById('display-change').className = `price-change ${changeClass}`;
+            
+            document.getElementById('volume').textContent = 'N/A';
+            document.getElementById('day-high').textContent = `${data.high.toFixed(2)}`;
+            document.getElementById('day-low').textContent = `${data.low.toFixed(2)}`;
+
+            updateOrderBook();
+            addRecentTrade();
+        }
+
+        function updateWatchlist() {
+            const container = document.getElementById('watchlist-container');
+            if (!container) return;
+
+            container.innerHTML = '';
+            
+            watchlistSymbols.forEach(symbol => {
+                const data = stockData[symbol];
+                if (!data) return;
+
+                const changeClass = data.change >= 0 ? 'positive' : 'negative';
+                const changeSymbol = data.change >= 0 ? '+' : '';
+
+                const item = document.createElement('div');
+                item.className = 'watchlist-item';
+                item.onclick = () => selectStock(symbol);
+                item.innerHTML = `
+                    <div>
+                        <strong>${symbol}</strong><br>
+                        <small>Live Price</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <div class="${changeClass}">${data.price.toFixed(2)}</div>
+                        <small class="${changeClass}">${changeSymbol}${Math.abs(data.change).toFixed(2)} (${changeSymbol}${data.percent.toFixed(2)}%)</small>
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        function selectStock(symbol) {
+            document.getElementById('trade-symbol').value = symbol;
+            updateStockInfo();
+            
+            if (tradingChart) {
+                tradingChart.data.datasets[0].label = symbol;
+                tradingChart.update();
+            }
+        }
+
+        function updateMarketStatus() {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentDay = now.getDay();
+            
+            const isWeekday = currentDay >= 1 && currentDay <= 5;
+            const isMarketHours = currentHour >= 9 && currentHour < 16;
+            const marketOpen = isWeekday && isMarketHours;
+            
+            const statusElement = document.getElementById('market-status');
+            
+            if (marketOpen) {
+                statusElement.textContent = 'Market OPEN';
+                statusElement.className = 'market-status market-open';
+            } else {
+                if (!isWeekday) {
+                    statusElement.textContent = 'Market CLOSED (Weekend)';
+                } else if (currentHour < 9) {
+                    statusElement.textContent = 'Market CLOSED (Pre-Market)';
+                } else {
+                    statusElement.textContent = 'Market CLOSED (After Hours)';
+                }
+                statusElement.className = 'market-status market-closed';
+            }
+        }
+
+        function initializeTradingChart() {
+            const ctx = document.getElementById('tradingChart');
+            if (!ctx) return;
+
+            const timeLabels = [];
+            const priceData = [];
+            
+            for (let i = 0; i < 50; i++) {
+                const time = new Date();
+                time.setMinutes(time.getMinutes() - (50 - i));
+                timeLabels.push(time.toLocaleTimeString());
+                priceData.push(0);
+            }
+
+            tradingChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: timeLabels,
+                    datasets: [{
+                        label: currentSymbol,
+                        data: priceData,
+                        borderColor: '#00f5ff',
+                        backgroundColor: 'rgba(0, 245, 255, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.1,
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#ffffff'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { 
+                                color: '#888888',
+                                maxTicksLimit: 10
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { 
+                                color: '#888888',
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    },
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    }
+                }
+            });
+
+            updateChartData();
+        }
+
+        function updateChartData() {
+            if (!tradingChart || !stockData[currentSymbol]) return;
+
+            const data = stockData[currentSymbol];
+            const basePrice = data.price;
+            
+            const newData = [];
+            for (let i = 0; i < 50; i++) {
+                const variation = (Math.random() - 0.5) * (basePrice * 0.02);
+                newData.push(basePrice + variation);
+            }
+
+            tradingChart.data.datasets[0].data = newData;
+            tradingChart.data.datasets[0].label = currentSymbol;
+            tradingChart.update('none');
+        }
+
+        function selectOrderType(type) {
+            currentOrderType = type;
+            
+            document.querySelectorAll('.order-type-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const priceGroup = document.getElementById('price-group');
+            const stopGroup = document.getElementById('stop-group');
+            
+            if (type === 'limit') {
+                priceGroup.style.display = 'block';
+                stopGroup.style.display = 'none';
+            } else if (type === 'stop') {
+                priceGroup.style.display = 'none';
+                stopGroup.style.display = 'block';
+            } else {
+                priceGroup.style.display = 'none';
+                stopGroup.style.display = 'none';
+            }
+        }
+
+        function updateOrderBook() {
+            const tbody = document.getElementById('order-book-body');
+            if (!tbody || !stockData[currentSymbol]) return;
+
+            tbody.innerHTML = '';
+            
+            const currentPrice = stockData[currentSymbol].price;
+            const asks = [];
+            const bids = [];
+
+            for (let i = 1; i <= 4; i++) {
+                asks.push({
+                    price: (currentPrice + (i * 0.05)).toFixed(2),
+                    size: Math.floor(Math.random() * 2000) + 500,
+                    total: Math.floor(Math.random() * 500000) + 100000
+                });
+            }
+
+            for (let i = 1; i <= 4; i++) {
+                bids.push({
+                    price: (currentPrice - (i * 0.05)).toFixed(2),
+                    size: Math.floor(Math.random() * 2000) + 500,
+                    total: Math.floor(Math.random() * 500000) + 100000
+                });
+            }
+
+            asks.reverse().forEach(ask => {
+                const row = document.createElement('tr');
+                row.className = 'ask-row';
+                row.innerHTML = `
+                    <td class="negative">${ask.price}</td>
+                    <td>${ask.size.toLocaleString()}</td>
+                    <td>${ask.total.toLocaleString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            const spreadRow = document.createElement('tr');
+            spreadRow.style.cssText = 'border-top: 2px solid #00f5ff; border-bottom: 2px solid #00f5ff;';
+            spreadRow.innerHTML = '<td colspan="3" style="text-align: center; color: #00f5ff; font-weight: bold;">SPREAD</td>';
+            tbody.appendChild(spreadRow);
+
+            bids.forEach(bid => {
+                const row = document.createElement('tr');
+                row.className = 'bid-row';
+                row.innerHTML = `
+                    <td class="positive">${bid.price}</td>
+                    <td>${bid.size.toLocaleString()}</td>
+                    <td>${bid.total.toLocaleString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function initializeOrderBook() {
+            updateOrderBook();
+        }
+
+        function addRecentTrade() {
+            const container = document.getElementById('recent-trades-list');
+            if (!container || !stockData[currentSymbol]) return;
+
+            if (container.querySelector('div[style*="Loading"]')) {
+                container.innerHTML = '';
+            }
+
+            const currentTime = new Date();
+            const timeString = currentTime.toLocaleTimeString();
+            
+            const basePrice = stockData[currentSymbol].price;
+            const price = (basePrice + (Math.random() - 0.5) * 0.5).toFixed(2);
+            const size = Math.floor(Math.random() * 3000) + 100;
+            const isPositive = Math.random() > 0.5;
+
+            const newTrade = document.createElement('div');
+            newTrade.className = 'trade-item';
+            newTrade.innerHTML = `
+                <span class="${isPositive ? 'positive' : 'negative'}">${price}</span>
+                <span>${size.toLocaleString()}</span>
+                <span>${timeString}</span>
+            `;
+
+            container.insertBefore(newTrade, container.firstChild);
+
+            while (container.children.length > 10) {
+                container.removeChild(container.lastChild);
+            }
+        }
+
+        function startRealTimeUpdates() {
+            setInterval(() => {
+                fetchLiveStockData();
+                updateChartData();
+            }, 30000);
+
+            setInterval(() => {
+                updateOrderBook();
+            }, 5000);
+
+            setInterval(() => {
+                addRecentTrade();
+            }, 3000);
+        }
+
+        function executeTrade(action) {
+            const symbol = document.getElementById('trade-symbol').value;
+            const quantity = document.getElementById('trade-quantity').value;
+            const orderType = currentOrderType;
+            const timeInForce = document.getElementById('time-in-force').value;
+
+            if (!symbol || !quantity) {
+                showNotification('Please enter symbol and quantity', 'warning');
+                return;
+            }
+
+            let price = null;
+            if (orderType === 'limit') {
+                price = document.getElementById('limit-price').value;
+                if (!price) {
+                    showNotification('Please enter limit price', 'warning');
+                    return;
+                }
+            } else if (orderType === 'stop') {
+                price = document.getElementById('stop-price').value;
+                if (!price) {
+                    showNotification('Please enter stop price', 'warning');
+                    return;
+                }
+            }
+
+            const orderDetails = {
+                action: action.toUpperCase(),
+                symbol: symbol.toUpperCase(),
+                quantity: parseInt(quantity),
+                orderType: orderType,
+                price: price,
+                timeInForce: timeInForce,
+                timestamp: new Date().toLocaleString()
+            };
+
+            showOrderPreview(orderDetails);
+        }
+
+        function showOrderPreview(orderDetails) {
+            const modal = document.getElementById('orderModal');
+            const detailsDiv = document.getElementById('orderDetails');
+
+            const estimatedPrice = orderDetails.price || stockData[orderDetails.symbol]?.price || 0;
+            const estimatedTotal = estimatedPrice * orderDetails.quantity;
+
+            detailsDiv.innerHTML = `
+                <div style="margin-bottom: 1rem;">
+                    <h3 style="color: #00f5ff; margin-bottom: 1rem;">Order Preview</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <strong>Action:</strong><br>
+                            <span class="${orderDetails.action === 'BUY' ? 'positive' : 'negative'}">${orderDetails.action}</span>
+                        </div>
+                        <div>
+                            <strong>Symbol:</strong><br>
+                            ${orderDetails.symbol}
+                        </div>
+                        <div>
+                            <strong>Quantity:</strong><br>
+                            ${orderDetails.quantity} shares
+                        </div>
+                        <div>
+                            <strong>Order Type:</strong><br>
+                            ${orderDetails.orderType}
+                        </div>
+                        <div>
+                            <strong>Price:</strong><br>
+                            ${orderDetails.price ? `${parseFloat(orderDetails.price).toFixed(2)}` : 'Market Price'}
+                        </div>
+                        <div>
+                            <strong>Estimated Total:</strong><br>
+                            ${estimatedTotal.toLocaleString()}
+                        </div>
+                    </div>
+                </div>
+                <div style="padding: 1rem; background: rgba(255, 255, 0, 0.1); border-radius: 8px; border-left: 4px solid #ffff00;">
+                    <strong>Confirmation Required</strong><br>
+                    <small>This order will be submitted for execution. Please review all details carefully.</small>
+                </div>
+            `;
+
+            modal.style.display = 'block';
+        }
+
+        function confirmOrder() {
+            const orderId = 'ORD' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            
+            showNotification(`Order ${orderId} submitted successfully!`, 'success');
+            
+            document.getElementById('trade-quantity').value = '';
+            document.getElementById('limit-price').value = '';
+            document.getElementById('stop-price').value = '';
+            
+            closeModal();
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').style.display = 'none';
+        }
+
+        function calculatePosition() {
+            const entryPrice = parseFloat(document.getElementById('calc-entry').value);
+            const quantity = parseInt(document.getElementById('calc-quantity').value);
+            const stopLoss = parseFloat(document.getElementById('calc-stop').value);
+            const takeProfit = parseFloat(document.getElementById('calc-target').value);
+
+            if (!entryPrice || !quantity || !stopLoss || !takeProfit) {
+                showNotification('Please fill in all calculator fields', 'warning');
+                return;
+            }
+
+            const positionValue = entryPrice * quantity;
+            const riskPerShare = Math.abs(entryPrice - stopLoss);
+            const totalRisk = riskPerShare * quantity;
+            const rewardPerShare = Math.abs(takeProfit - entryPrice);
+            const totalReward = rewardPerShare * quantity;
+            const riskRewardRatio = rewardPerShare / riskPerShare;
+            const riskPercent = (totalRisk / positionValue) * 100;
+
+            const resultDiv = document.getElementById('calc-result');
+            resultDiv.innerHTML = `
+                <h4 style="margin-bottom: 1rem; color: #00f5ff;">Position Analysis</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div>
+                        <strong>Position Value:</strong><br>
+                        ${positionValue.toLocaleString()}
+                    </div>
+                    <div>
+                        <strong>Risk per Share:</strong><br>
+                        ${riskPerShare.toFixed(2)}
+                    </div>
+                    <div>
+                        <strong>Total Risk:</strong><br>
+                        <span class="negative">-${totalRisk.toLocaleString()}</span>
+                    </div>
+                    <div>
+                        <strong>Total Reward:</strong><br>
+                        <span class="positive">+${totalReward.toLocaleString()}</span>
+                    </div>
+                    <div>
+                        <strong>Risk/Reward Ratio:</strong><br>
+                        1:${riskRewardRatio.toFixed(2)}
+                    </div>
+                    <div>
+                        <strong>Risk Percentage:</strong><br>
+                        ${riskPercent.toFixed(2)}%
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 245, 255, 0.1); border-radius: 8px;">
+                    <strong>Analysis:</strong><br>
+                    ${riskRewardRatio >= 2 ? 
+                        '<span class="positive">Good risk/reward ratio!</span>' : 
+                        '<span class="negative">Consider improving risk/reward ratio</span>'
+                    }
+                    ${riskPercent > 5 ? 
+                        '<br><span class="negative">High position risk (>5%)</span>' : 
+                        '<br><span class="positive">Reasonable position risk</span>'
+                    }
+                </div>
+            `;
+            resultDiv.style.display = 'block';
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            const bgColor = type === 'success' ? 'linear-gradient(45deg, #2ed573, #1dd1a1)' : 
+                            type === 'warning' ? 'linear-gradient(45deg, #ff4757, #ff3838)' : 
+                            'linear-gradient(45deg, #00f5ff, #0066ff)';
+            
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background: ${bgColor};
+                color: white;
+                padding: 1rem 2rem;
+                border-radius: 12px;
+                z-index: 3000;
+                animation: slideIn 0.3s ease;
+                max-width: 300px;
+                font-weight: 600;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            `;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
+
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = 'index.html';
+            }
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('orderModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>

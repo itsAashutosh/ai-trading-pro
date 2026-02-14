@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Trading Pro - Settings</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%); color: #fff; min-height: 100vh; }
+        .navbar { background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255,255,255,0.1); padding: 1rem 2rem; position: fixed; top: 0; width: 100%; z-index: 1000; display: flex; justify-content: space-between; align-items: center; }
+        .logo { background: linear-gradient(45deg, #00f5ff, #ff00ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; font-size: 1.5rem; font-weight: 700; }
+        .nav-links { display: flex; gap: 2rem; list-style: none; }
+        .nav-links a { color: #fff; text-decoration: none; padding: 0.5rem 1rem; border-radius: 8px; transition: all 0.3s; }
+        .nav-links a:hover, .nav-links a.active { background: rgba(0,245,255,0.1); color: #00f5ff; }
+        .user-info { display: flex; align-items: center; gap: 1rem; }
+        .market-status { padding: 0.3rem 1rem; border-radius: 20px; font-size: 0.8rem; font-weight: 500; }
+        .market-closed { background: linear-gradient(45deg, #ff4757, #ff3838); }
+        .market-open { background: linear-gradient(45deg, #2ed573, #1dd1a1); }
+        .btn { padding: 0.8rem 1.5rem; border: none; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(45deg, #00f5ff, #0066ff); color: white; }
+        .btn-success { background: linear-gradient(45deg, #2ed573, #1dd1a1); color: white; }
+        .btn-danger { background: linear-gradient(45deg, #ff4757, #ff3838); color: white; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.3); }
+        .main-content { margin-top: 80px; padding: 2rem; min-height: calc(100vh - 80px); }
+        .page-title { font-size: 2.5rem; font-weight: 700; background: linear-gradient(45deg, #00f5ff, #ff00ff); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem; }
+        .page-subtitle { color: #888; font-size: 1.1rem; margin-bottom: 2rem; }
+        .settings-container { display: grid; grid-template-columns: 250px 1fr; gap: 2rem; }
+        .settings-sidebar { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 1.5rem; height: fit-content; position: sticky; top: 100px; }
+        .settings-nav { list-style: none; }
+        .settings-nav li { padding: 0.8rem 1rem; margin-bottom: 0.5rem; border-radius: 10px; cursor: pointer; transition: all 0.3s; }
+        .settings-nav li:hover { background: rgba(0,245,255,0.1); }
+        .settings-nav li.active { background: linear-gradient(45deg, rgba(0,245,255,0.2), rgba(255,0,255,0.2)); border-left: 3px solid #00f5ff; }
+        .settings-content { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); border-radius: 20px; padding: 2rem; }
+        .settings-section { display: none; }
+        .settings-section.active { display: block; }
+        .section-title { font-size: 1.8rem; font-weight: 600; color: #00f5ff; margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; color: #888; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem; }
+        .form-control { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 0.75rem; color: #fff; font-size: 1rem; width: 100%; }
+        .form-control:focus { outline: none; border-color: #00f5ff; box-shadow: 0 0 0 2px rgba(0,245,255,0.2); }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: rgba(255,255,255,0.2); transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background: linear-gradient(45deg, #00f5ff, #0066ff); }
+        input:checked + .slider:before { transform: translateX(24px); }
+        .preference-item { display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: rgba(255,255,255,0.03); border-radius: 10px; margin-bottom: 1rem; }
+        .color-picker { width: 60px; height: 40px; border: 2px solid rgba(255,255,255,0.2); border-radius: 8px; cursor: pointer; }
+        .api-key-display { background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; font-family: 'Courier New', monospace; word-break: break-all; }
+        .danger-zone { background: rgba(255,71,87,0.1); border: 1px solid rgba(255,71,87,0.3); border-radius: 12px; padding: 1.5rem; margin-top: 2rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: rgba(255,255,255,0.03); border-radius: 10px; padding: 1rem; text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 700; color: #00f5ff; }
+        .stat-label { color: #888; font-size: 0.9rem; margin-top: 0.5rem; }
+        .notification { position: fixed; top: 100px; right: 20px; background: linear-gradient(45deg, #2ed573, #1dd1a1); color: white; padding: 1rem 2rem; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 2000; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @media (max-width: 1024px) { .settings-container { grid-template-columns: 1fr; } .settings-sidebar { position: static; } }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="logo">AI TRADING PRO</div>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">Dashboard</a></li>
+            <li><a href="portfolio.html">Portfolio</a></li>
+            <li><a href="trading.html">Trading</a></li>
+            <li><a href="analytics.html">Analytics</a></li>
+            <li><a href="news.html">News</a></li>
+            <li><a href="rl_training.html">Train</a></li>
+            <li><a href="settings.html">Settings</a></li>
+        </ul>
+        <div class="user-info">
+            <span class="market-status market-closed" id="marketStatus">Market CLOSED</span>
+            <span>Welcome, Demo User</span>
+            <button class="btn btn-primary" onclick="logout()">LOGOUT</button>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <h1 class="page-title">Settings</h1>
+        <p class="page-subtitle">Configure your trading preferences and account settings</p>
+
+        <div class="settings-container">
+            <aside class="settings-sidebar">
+                <ul class="settings-nav">
+                    <li class="active" onclick="showSection('profile')">Profile</li>
+                    <li onclick="showSection('trading')">Trading Preferences</li>
+                    <li onclick="showSection('notifications')">Notifications</li>
+                    <li onclick="showSection('api')">API Settings</li>
+                    <li onclick="showSection('appearance')">Appearance</li>
+                    <li onclick="showSection('security')">Security</li>
+                    <li onclick="showSection('account')">Account Stats</li>
+                </ul>
+            </aside>
+
+            <div class="settings-content">
+                <!-- Profile Settings -->
+                <div id="profile" class="settings-section active">
+                    <h2 class="section-title">Profile Settings</h2>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" class="form-control" id="fullName" value="Demo User">
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" class="form-control" id="email" value="demo@tradingpro.com">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Phone Number</label>
+                            <input type="tel" class="form-control" id="phone" value="+1 (555) 123-4567">
+                        </div>
+                        <div class="form-group">
+                            <label>Country</label>
+                            <select class="form-control" id="country">
+                                <option>United States</option>
+                                <option>United Kingdom</option>
+                                <option>Canada</option>
+                                <option>India</option>
+                                <option>Australia</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Trading Experience</label>
+                        <select class="form-control" id="experience">
+                            <option>Beginner (0-1 years)</option>
+                            <option>Intermediate (1-5 years)</option>
+                            <option selected>Advanced (5+ years)</option>
+                            <option>Professional Trader</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" onclick="saveSettings('profile')">Save Profile</button>
+                </div>
+
+                <!-- Trading Preferences -->
+                <div id="trading" class="settings-section">
+                    <h2 class="section-title">Trading Preferences</h2>
+                    <div class="form-group">
+                        <label>Default Order Type</label>
+                        <select class="form-control" id="defaultOrderType">
+                            <option selected>Market Order</option>
+                            <option>Limit Order</option>
+                            <option>Stop Loss</option>
+                            <option>Stop Limit</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Default Quantity</label>
+                            <input type="number" class="form-control" id="defaultQuantity" value="100">
+                        </div>
+                        <div class="form-group">
+                            <label>Risk Tolerance</label>
+                            <select class="form-control" id="riskTolerance">
+                                <option>Conservative</option>
+                                <option selected>Moderate</option>
+                                <option>Aggressive</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Confirm Before Trading</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Show confirmation dialog before executing trades</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="confirmTrades" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Auto-Refresh Prices</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Automatically update stock prices every 3 seconds</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="autoRefresh" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Enable Paper Trading</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Practice with virtual money (all trades are simulated)</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="paperTrading" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Data Refresh Interval (seconds)</label>
+                        <input type="number" class="form-control" id="refreshInterval" value="3" min="1" max="60">
+                    </div>
+                    <button class="btn btn-success" onclick="saveSettings('trading')">Save Preferences</button>
+                </div>
+
+                <!-- Notifications -->
+                <div id="notifications" class="settings-section">
+                    <h2 class="section-title">Notification Settings</h2>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Email Notifications</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Receive trade confirmations via email</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="emailNotif" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Price Alerts</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Get notified when stocks hit target prices</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="priceAlerts" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>News Notifications</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Breaking news for your watchlist stocks</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="newsNotif">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Market Open/Close Alerts</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Notifications when market opens or closes</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="marketAlerts">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Portfolio Alerts</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Daily portfolio performance summary</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="portfolioAlerts" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <button class="btn btn-success" onclick="saveSettings('notifications')">Save Notifications</button>
+                </div>
+
+                <!-- API Settings -->
+                <div id="api" class="settings-section">
+                    <h2 class="section-title">API Configuration</h2>
+                    <div class="form-group">
+                        <label>Finnhub API Key</label>
+                        <div class="api-key-display" id="apiKeyDisplay">d3f9q79r01qolknc9vi0</div>
+                        <small style="color: #888; display: block; margin-top: 0.5rem;">
+                            Get your free API key at <a href="https://finnhub.io" target="_blank" style="color: #00f5ff;">finnhub.io</a>
+                        </small>
+                    </div>
+                    <div class="form-group">
+                        <label>Update API Key</label>
+                        <input type="text" class="form-control" id="newApiKey" placeholder="Enter new API key">
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Enable Live Data</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Use real market data from Finnhub (requires API key)</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="liveData" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value" id="apiCalls">1,247</div>
+                            <div class="stat-label">API Calls Today</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">58,753</div>
+                            <div class="stat-label">Remaining Calls</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">99.8%</div>
+                            <div class="stat-label">Uptime</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-success" onclick="saveSettings('api')">Update API Key</button>
+                </div>
+
+                <!-- Appearance -->
+                <div id="appearance" class="settings-section">
+                    <h2 class="section-title">Appearance Settings</h2>
+                    <div class="form-group">
+                        <label>Theme</label>
+                        <select class="form-control" id="theme">
+                            <option selected>Dark (Default)</option>
+                            <option>Dark Blue</option>
+                            <option>Midnight</option>
+                            <option>Matrix Green</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Primary Accent Color</label>
+                        <input type="color" class="color-picker" id="accentColor" value="#00f5ff">
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Compact Mode</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Reduce spacing for more data on screen</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="compactMode">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Show Animations</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Enable smooth transitions and effects</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="animations" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>3D Visualizations</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Enable Three.js 3D portfolio charts</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="enable3D" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>Chart Style</label>
+                        <select class="form-control" id="chartStyle">
+                            <option selected>Line Charts</option>
+                            <option>Candlestick</option>
+                            <option>Area Charts</option>
+                            <option>Bar Charts</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-success" onclick="saveSettings('appearance')">Apply Theme</button>
+                </div>
+
+                <!-- Security -->
+                <div id="security" class="settings-section">
+                    <h2 class="section-title">Security Settings</h2>
+                    <div class="form-group">
+                        <label>Current Password</label>
+                        <input type="password" class="form-control" id="currentPassword" placeholder="Enter current password">
+                    </div>
+                    <div class="form-group">
+                        <label>New Password</label>
+                        <input type="password" class="form-control" id="newPassword" placeholder="Enter new password">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm new password">
+                    </div>
+                    <button class="btn btn-success" onclick="changePassword()">Change Password</button>
+                    
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: #00f5ff;">Two-Factor Authentication</h3>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Enable 2FA</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Add extra security with authenticator app</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="twoFactor">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: #00f5ff;">Session Management</h3>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Auto Logout</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Automatically log out after 30 minutes of inactivity</p>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" id="autoLogout" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <button class="btn btn-danger" onclick="logoutAllDevices()">Logout All Devices</button>
+                </div>
+
+                <!-- Account Stats -->
+                <div id="account" class="settings-section">
+                    <h2 class="section-title">Account Statistics</h2>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-value">157</div>
+                            <div class="stat-label">Total Trades</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">68%</div>
+                            <div class="stat-label">Win Rate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">+$12,430</div>
+                            <div class="stat-label">Total Profit</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">87 days</div>
+                            <div class="stat-label">Member Since</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">5</div>
+                            <div class="stat-label">Active Positions</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">$125,430</div>
+                            <div class="stat-label">Portfolio Value</div>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 2rem; margin-bottom: 1rem; color: #00f5ff;">Account Actions</h3>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Export Trading History</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Download all trades as CSV file</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="exportData()">Export</button>
+                    </div>
+                    <div class="preference-item">
+                        <div>
+                            <strong>Download Tax Report</strong>
+                            <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Generate tax document for current year</p>
+                        </div>
+                        <button class="btn btn-primary" onclick="downloadTaxReport()">Download</button>
+                    </div>
+
+                    <div class="danger-zone">
+                        <h3 style="color: #ff4757; margin-bottom: 1rem;">Danger Zone</h3>
+                        <div class="preference-item" style="background: transparent;">
+                            <div>
+                                <strong>Reset All Settings</strong>
+                                <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Restore default configuration</p>
+                            </div>
+                            <button class="btn btn-danger" onclick="resetSettings()">Reset</button>
+                        </div>
+                        <div class="preference-item" style="background: transparent;">
+                            <div>
+                                <strong>Close Account</strong>
+                                <p style="color: #888; font-size: 0.85rem; margin-top: 0.3rem;">Permanently delete your account and data</p>
+                            </div>
+                            <button class="btn btn-danger" onclick="closeAccount()">Delete Account</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function showSection(section) {
+            document.querySelectorAll('.settings-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.settings-nav li').forEach(li => li.classList.remove('active'));
+            document.getElementById(section).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function saveSettings(section) {
+            showNotification(`${section.charAt(0).toUpperCase() + section.slice(1)} settings saved successfully!`);
+            
+            if (section === 'api') {
+                const newKey = document.getElementById('newApiKey').value;
+                if (newKey) {
+                    document.getElementById('apiKeyDisplay').textContent = newKey;
+                    document.getElementById('newApiKey').value = '';
+                }
+            }
+        }
+
+        function changePassword() {
+            const current = document.getElementById('currentPassword').value;
+            const newPass = document.getElementById('newPassword').value;
+            const confirm = document.getElementById('confirmPassword').value;
+            
+            if (!current || !newPass || !confirm) {
+                alert('Please fill in all password fields');
+                return;
+            }
+            
+            if (newPass !== confirm) {
+                alert('New passwords do not match');
+                return;
+            }
+            
+            showNotification('Password changed successfully!');
+            document.getElementById('currentPassword').value = '';
+            document.getElementById('newPassword').value = '';
+            document.getElementById('confirmPassword').value = '';
+        }
+
+        function logoutAllDevices() {
+            if (confirm('This will log you out from all devices. Continue?')) {
+                showNotification('Logged out from all devices');
+            }
+        }
+
+        function exportData() {
+            showNotification('Exporting trading history...');
+            setTimeout(() => {
+                showNotification('Trading history exported successfully!');
+            }, 1500);
+        }
+
+        function downloadTaxReport() {
+            showNotification('Generating tax report...');
+            setTimeout(() => {
+                showNotification('Tax report downloaded!');
+            }, 1500);
+        }
+
+        function resetSettings() {
+            if (confirm('Reset all settings to default? This cannot be undone.')) {
+                showNotification('Settings reset to default values');
+                location.reload();
+            }
+        }
+
+        function closeAccount() {
+            const confirmation = prompt('Type "DELETE" to confirm account closure:');
+            if (confirmation === 'DELETE') {
+                showNotification('Account closure initiated. You will receive a confirmation email.');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 3000);
+            }
+        }
+
+        function showNotification(message) {
+            const notif = document.createElement('div');
+            notif.className = 'notification';
+            notif.textContent = message;
+            document.body.appendChild(notif);
+            
+            setTimeout(() => {
+                notif.remove();
+            }, 3000);
+        }
+
+        function updateMarketStatus() {
+            const now = new Date();
+            const isOpen = (now.getDay() >= 1 && now.getDay() <= 5) && (now.getHours() >= 9 && now.getHours() < 16);
+            const status = document.getElementById('marketStatus');
+            status.textContent = isOpen ? 'Market OPEN' : 'Market CLOSED';
+            status.className = `market-status ${isOpen ? 'market-open' : 'market-closed'}`;
+        }
+
+        function logout() {
+            if (confirm('Logout?')) window.location.href = 'index.html';
+        }
+
+        // Auto-save functionality
+        document.querySelectorAll('input, select').forEach(input => {
+            input.addEventListener('change', () => {
+                const key = input.id;
+                const value = input.type === 'checkbox' ? input.checked : input.value;
+                localStorage.setItem(key, value);
+            });
+        });
+
+        // Load saved settings on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateMarketStatus();
+            
+            document.querySelectorAll('input, select').forEach(input => {
+                const key = input.id;
+                const saved = localStorage.getItem(key);
+                
+                if (saved !== null) {
+                    if (input.type === 'checkbox') {
+                        input.checked = saved === 'true';
+                    } else {
+                        input.value = saved;
+                    }
+                }
+            });
+
+            // Simulate API call counter
+            setInterval(() => {
+                const current = parseInt(document.getElementById('apiCalls').textContent.replace(',', ''));
+                document.getElementById('apiCalls').textContent = (current + Math.floor(Math.random() * 3)).toLocaleString();
+            }, 5000);
+        });
+    </script>
+</body>
+</html>
